@@ -21,16 +21,16 @@ module.exports = function (grunt) {
 		files: {
 		  'assets/js/public.js': 'assets/coffee/public.coffee'
 		}
-	  },
-	  watch: {
-		compass: {
-		  files: [
-			'assets/coffee/*.coffee'
-		  ],
-		  tasks: [
-			'coffee:publicDev'
-		  ]
-		}
+	  }
+	},
+	watch: {
+	  coffee: {
+		files: [
+		  'assets/coffee/*.coffee'
+		],
+		tasks: [
+		  'coffee:publicDev'
+		]
 	  }
 	}
   });

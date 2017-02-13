@@ -25,13 +25,18 @@ class BB_Modal_View {
 	function __construct( $args = array() ) {
 		$defaults = array(
 			'id' => 'test',
-			'hook' => '',
+			'hook' => 'admin_notices',
 			'label' => __( 'Open Modal' ),
 			'data' => array( 'rand' => rand() ),
 			'ajax' => '',
+			'echo_button' => true
 		);
 		$this->args = wp_parse_args( $args, $defaults );
-		add_action( $this->args[ 'hook' ], array( $this, 'append_resource_modal' ) );
+		if ( $this->args[ 'echo_button' ] ) {
+			add_action( $this->args[ 'hook' ], array( $this, 'btn_modal_echo' ) );
+		} else {
+			add_action( $this->args[ 'hook' ], array( $this, 'btn_modal' ) );
+		}
 		add_action( 'admin_head', array( $this, 'append_resource_modal' ) );
 		add_action( 'admin_footer', array( $this, 'append_modal' ) );
 	}
@@ -48,8 +53,12 @@ class BB_Modal_View {
 		foreach ( $this->args[ 'data' ] as $key => $value ) {
 			$data .= 'data-' . str_replace( ' ', '-', $key ) . '="' . $value . '" ';
 		}
-		$value = '<a href="#" class="button modal-' . $this->args[ 'id' ] . '" data-ajax="' . $this->args[ 'ajax' ] . '" ' . $data . '>' . $this->args[ 'label' ] . '</a>';
+		$value = '<a href="#" class="button bb-modal-button modal-' . $this->args[ 'id' ] . '" data-id="' . $this->args[ 'id' ] . '" data-ajax="' . $this->args[ 'ajax' ] . '" ' . $data . '>' . $this->args[ 'label' ] . '</a>';
 		return $value;
+	}
+
+	public function btn_modal_echo() {
+		echo $this->btn_modal();
 	}
 
 	/**
@@ -58,7 +67,8 @@ class BB_Modal_View {
 	public function append_resource_modal() {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'wp-backbone' );
-		wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ), DT_VERSION );
+		//wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
+		wp_enqueue_script( 'bb-modal-view', 'https://boilerplate.dev/wp-content/plugins/Backbone-Modal-View/assets/js/public.js', array( 'jquery', 'wp-backbone' ) );
 	}
 
 	/**
@@ -70,7 +80,7 @@ class BB_Modal_View {
 	public function append_modal( $found_action = '' ) {
 		?>
 		<style>
-			#<?php echo $this->args[ 'id' ]; ?>-close {
+			#bb-modal-view-close {
 				width: 36px;
 				height: 36px;
 				position: absolute;
@@ -80,22 +90,22 @@ class BB_Modal_View {
 				text-align: center;
 				color: #666;
 			}
-			#<?php echo $this->args[ 'id' ]; ?>-close::before {
+			#bb-modal-view-close::before {
 				font: 400 20px/36px dashicons;
 				vertical-align: top;
 				content: "";
 			}
-			#<?php echo $this->args[ 'id' ]; ?>-close:hover {
+			#bb-modal-view-close:hover {
 				color: #00A0D2;
 			}
 		</style>
-		<div id="<?php echo $this->args[ 'id' ]; ?>" class="find-box" style="display: none;">
-			<div id="<?php echo $this->args[ 'id' ]; ?>-head" class="find-box-head">
+		<div id="bb-modal-view-<?php echo $this->args[ 'id' ]; ?>" class="bb-modal-view" style="display: none;">
+			<div class="bb-modal-view-head">
 				<?php _e( 'Task' ); ?>
-				<div id="<?php echo $this->args[ 'id' ]; ?>-close"></div>
+				<div id="bb-modal-view-close"></div>
 			</div>
-			<div class="find-box-inside">
-				<div class="find-box-search">
+			<div class="bb-modal-view-inside">
+				<div class="bb-modal-view-search">
 					<?php if ( $found_action ) { ?>
 						<input type="hidden" name="found_action" value="<?php echo esc_attr( $found_action ); ?>" />
 					<?php } ?>
@@ -107,9 +117,9 @@ class BB_Modal_View {
 					<input type="button" id="<?php echo $this->args[ 'id' ]; ?>-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
 					<div class="clear"></div>
 				</div>
-				<div id="<?php echo $this->args[ 'id' ]; ?>-response"></div>
+				<div id="bb-modal-view-response"></div>
 			</div>
-			<div class="find-box-buttons">
+			<div class="bb-modal-view-buttons">
 				<?php submit_button( __( 'Select' ), 'button-primary alignright', $this->args[ 'id' ] . '-submit', false ); ?>
 				<div class="clear"></div>
 			</div>
