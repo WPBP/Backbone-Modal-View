@@ -26,6 +26,7 @@ class BB_Modal_View {
 		$defaults = array(
 			'id' => 'test',
 			'hook' => 'admin_notices',
+			'input' => 'checkbox', //or radio
 			'label' => __( 'Open Modal' ),
 			'data' => array( 'rand' => rand() ),
 			'ajax' => array( $this, 'ajax_posts' ),
@@ -164,14 +165,14 @@ class BB_Modal_View {
 		foreach ( $query->posts as $post ) {
 			$checked = '';
 			foreach ( $user_posts as $key => $posts ) {
-				if ( $posts === (string) $post->ID ) {
+				if ( $posts === ( string ) $post->ID ) {
 					$checked = ' checked="checked"';
 					unset( $user_posts[ $key ] );
 				}
 			}
 			$alt = ( 'alternate' == $alt ) ? '' : 'alternate';
 
-			$html .= '<tr class="' . trim( 'bb-modal-view-item ' . $alt ) . '"><td class="found-checkbox"><input type="checkbox" id="found-' . $post->ID . '" name="ajax_posts" value="' . esc_attr( $post->ID ) . '"' . $checked . '></td>';
+			$html .= '<tr class="' . trim( 'bb-modal-view-item ' . $alt ) . '"><td class="found-' . $this->args[ 'input' ] . '"><input type="' . $this->args[ 'input' ] . '" id="found-' . $post->ID . '" name="ajax_posts" value="' . esc_attr( $post->ID ) . '"' . $checked . '></td>';
 			$html .= '<td><label for="found-' . $post->ID . '">' . esc_html( $post->post_title ) . '</label></td></tr>' . "\n\n";
 		}
 
