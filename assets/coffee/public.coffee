@@ -88,6 +88,7 @@ jQuery(document).ready ($) ->
         @$overlay = $('#' + @modal_id + '-overlay')
         if !@$overlay.length
             $('body').append '<div id="' + @modal_id + '-overlay" class="ui-find-overlay"></div>'
+            @$overlay = $('#' + @modal_id + '-overlay')
     )
   
   $('.bb-modal-button').on 'click', (e) ->

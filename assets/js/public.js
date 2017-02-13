@@ -103,7 +103,8 @@ jQuery(document).ready(function($) {
       this.listenTo(this, 'close', this.close);
       this.$overlay = $('#' + this.modal_id + '-overlay');
       if (!this.$overlay.length) {
-        return $('body').append('<div id="' + this.modal_id + '-overlay" class="ui-find-overlay"></div>');
+        $('body').append('<div id="' + this.modal_id + '-overlay" class="ui-find-overlay"></div>');
+        return this.$overlay = $('#' + this.modal_id + '-overlay');
       }
     }
   });
