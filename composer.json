@@ -1,6 +1,6 @@
 {
-  "name": "wpbp/Backbone-Modal-View",
-  "description": "Add on a button a Backbone Modal View with a list",
+  "name": "wpbp/backbone-modal-view",
+  "description": "Add on a button a Backbone Modal View with a list for WordPress",
   "license": "GPL-3.0",
   "keywords": [
     "wordpress",
