@@ -1,16 +1,11 @@
 jQuery(document).ready(function($) {
   var BBModalView;
   BBModalView = window.Backbone.View.extend({
-    el: '',
     overlay: false,
     open: function() {
       this.$response.html('');
       this.$el.show();
       this.$input.focus();
-      if (!this.$overlay.length) {
-        $('body').append('<div id="' + this.el + '-overlay" class="ui-find-overlay"></div>');
-        this.$overlay = $("#" + this.el + "-overlay");
-      }
       this.$overlay.show();
       return this.send();
     },
@@ -23,9 +18,8 @@ jQuery(document).ready(function($) {
         dataType: 'json',
         data: {
           ps: search.$input.val(),
-          action: 'find_datask_tax',
-          user: window.dataskuserid,
-          _ajax_nonce: $("#" + this.el + " #_ajax_nonce").val()
+          action: $(".modal-" + this.modal_id).data('ajax'),
+          _ajax_nonce: $(this.selector + " #_ajax_nonce").val()
         }
       }).always(function() {
         search.$spinner.hide();
@@ -56,10 +50,11 @@ jQuery(document).ready(function($) {
       return this.send();
     },
     selectPost: function(evt) {
-      var checked, label, search;
+      var checked, label, search, selector;
       search = this;
+      selector = this.selector;
       evt.preventDefault();
-      this.$checked = $('#find-datask-tax-response input[name="found_tax_task"]:checked');
+      this.$checked = $(this.selector + ' #bb-modal-view-response input[name="' + $(".modal-" + this.modal_id).data('ajax') + '"]:checked');
       checked = this.$checked.map(function() {
         return this.value;
       }).get();
@@ -69,52 +64,56 @@ jQuery(document).ready(function($) {
       }
       label = [];
       $.each(checked, function(index, value) {
-        label.push($(this.el + '#bb-modal-view-response input#found-' + value).attr('value'));
+        label.push($(selector + ' #bb-modal-view-response input#found-' + value).attr('value'));
       });
-      $.ajax(ajaxurl, {
-        type: 'POST',
-        dataType: 'json',
-        data: {
-          taxs: label.join(', '),
-          user: window.dataskuserid,
-          action: 'add_datask_tax',
-          _ajax_nonce: $(this.el + ' #_ajax_nonce').val()
-        }
-      }).always(function() {
-        search.$spinner.hide();
-      }).fail(function() {
-        search.$response.text('Error');
-      });
+      if (!!$(".modal-" + this.modal_id).data('ajax-on-select')) {
+        $.ajax(ajaxurl, {
+          type: 'POST',
+          dataType: 'json',
+          data: {
+            check: label.join(', '),
+            action: $(".modal-" + this.modal_id).data('ajax-on-select'),
+            _ajax_nonce: $(this.selector + ' #_ajax_nonce').val()
+          }
+        }).always(function() {
+          search.$spinner.hide();
+        }).fail(function() {
+          search.$response.text('Error');
+        });
+      }
       return this.close();
     },
     events: function() {
-      var obj;
-      return (
-        obj = {},
-        obj["keypress " + this.el + "#bb-modal-view-input"] = 'maybeStartSearch',
-        obj["keyup " + this.el + "#bb-modal-view-input"] = 'escClose',
-        obj["click " + this.el + "#bb-modal-view-submit"] = 'selectPost',
-        obj["click " + this.el + "#bb-modal-view-search"] = 'send',
-        obj["click " + this.el + "#bb-modal-view-close"] = 'close',
-        obj
-      );
+      return {
+        "keypress #bb-modal-view-input": 'maybeStartSearch',
+        "keyup #bb-modal-view-input": 'escClose',
+        "click #bb-modal-view-submit": 'selectPost',
+        "click #bb-modal-view-search": 'send',
+        "click #bb-modal-view-close": 'close'
+      };
     },
-    initialize: function(id) {
-      this.modal_id = id;
-      this.el = '#bb-modal-view-' + this.modal_id;
-      this.$response = $(this.el).find('#bb-modal-view-response');
-      this.$overlay = $('#bb-modal-view-overlay');
-      this.$input = $(this.el).find('#bb-modal-view-input');
-      this.$spinner = $(this.el).find('.spinner');
+    initialize: function(pars) {
+      this.$el = $(this.el);
+      this.selector = pars.selector;
+      this.modal_id = pars.modal_id;
+      this.$response = this.$el.find('#bb-modal-view-response');
+      this.$input = this.$el.find('#bb-modal-view-input');
+      this.$spinner = this.$el.find('.spinner');
       this.listenTo(this, 'open', this.open);
-      return this.listenTo(this, 'close', this.close);
+      this.listenTo(this, 'close', this.close);
+      this.$overlay = $('#' + this.modal_id + '-overlay');
+      if (!this.$overlay.length) {
+        return $('body').append('<div id="' + this.modal_id + '-overlay" class="ui-find-overlay"></div>');
+      }
     }
   });
-  console.log(123);
   return $('.bb-modal-button').on('click', function(e) {
     var bb_modal;
-    window.dataskuserid = $(this).data('user-id');
-    bb_modal = new BBModalView($(this).data('id'));
+    bb_modal = new BBModalView({
+      el: '#bb-modal-view-' + $(this).data('id'),
+      modal_id: $(this).data('id'),
+      selector: '#bb-modal-view-' + $(this).data('id')
+    });
     return bb_modal.trigger('open');
   });
 });

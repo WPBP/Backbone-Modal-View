@@ -2,9 +2,9 @@
 /**
  * @package   Backbone-Modal-View
  * @author    Mte90
+ * @copyright 2016 GPL
  * @license   GPL-3.0+
  * @link      http://mte90.net
- * @copyright 2016 GPL
  */
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) {
@@ -28,7 +28,8 @@ class BB_Modal_View {
 			'hook' => 'admin_notices',
 			'label' => __( 'Open Modal' ),
 			'data' => array( 'rand' => rand() ),
-			'ajax' => '',
+			'ajax' => array( $this, 'ajax_posts' ),
+			'ajax_on_select' => array( $this, 'ajax_posts_selected' ),
 			'echo_button' => true
 		);
 		$this->args = wp_parse_args( $args, $defaults );
@@ -39,6 +40,20 @@ class BB_Modal_View {
 		}
 		add_action( 'admin_head', array( $this, 'append_resource_modal' ) );
 		add_action( 'admin_footer', array( $this, 'append_modal' ) );
+
+		$ajax = $this->args[ 'ajax' ];
+		if ( is_array( $ajax ) ) {
+			$ajax = $ajax[ 1 ];
+		}
+		add_action( 'wp_ajax_' . $ajax, $this->args[ 'ajax' ] );
+		$this->args[ 'ajax' ] = $ajax;
+
+		$ajax_on_select = $this->args[ 'ajax_on_select' ];
+		if ( is_array( $ajax_on_select ) ) {
+			$ajax_on_select = $ajax_on_select[ 1 ];
+		}
+		add_action( 'wp_ajax_' . $ajax_on_select, $this->args[ 'ajax_on_select' ] );
+		$this->args[ 'ajax_on_select' ] = $ajax_on_select;
 	}
 
 	/**
@@ -53,7 +68,7 @@ class BB_Modal_View {
 		foreach ( $this->args[ 'data' ] as $key => $value ) {
 			$data .= 'data-' . str_replace( ' ', '-', $key ) . '="' . $value . '" ';
 		}
-		$value = '<a href="#" class="button bb-modal-button modal-' . $this->args[ 'id' ] . '" data-id="' . $this->args[ 'id' ] . '" data-ajax="' . $this->args[ 'ajax' ] . '" ' . $data . '>' . $this->args[ 'label' ] . '</a>';
+		$value = '<a href="#" class="button bb-modal-button modal-' . $this->args[ 'id' ] . '" data-id="' . $this->args[ 'id' ] . '" data-ajax="' . $this->args[ 'ajax' ] . '" data-ajax-on-select="' . $this->args[ 'ajax_on_select' ] . '" ' . $data . '>' . $this->args[ 'label' ] . '</a>';
 		return $value;
 	}
 
@@ -67,6 +82,7 @@ class BB_Modal_View {
 	public function append_resource_modal() {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'wp-backbone' );
+		// TODO use the right path
 		//wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
 		wp_enqueue_script( 'bb-modal-view', 'https://boilerplate.dev/wp-content/plugins/Backbone-Modal-View/assets/js/public.js', array( 'jquery', 'wp-backbone' ) );
 	}
@@ -99,28 +115,28 @@ class BB_Modal_View {
 				color: #00A0D2;
 			}
 		</style>
-		<div id="bb-modal-view-<?php echo $this->args[ 'id' ]; ?>" class="bb-modal-view" style="display: none;">
-			<div class="bb-modal-view-head">
+		<div id="bb-modal-view-<?php echo $this->args[ 'id' ]; ?>" class="find-box bb-modal-view" style="display: none;">
+			<div class="find-box-head bb-modal-view-head">
 				<?php _e( 'Task' ); ?>
 				<div id="bb-modal-view-close"></div>
 			</div>
-			<div class="bb-modal-view-inside">
-				<div class="bb-modal-view-search">
+			<div class="find-box-inside bb-modal-view-inside">
+				<div class="find-box-search bb-modal-view-search">
 					<?php if ( $found_action ) { ?>
 						<input type="hidden" name="found_action" value="<?php echo esc_attr( $found_action ); ?>" />
 					<?php } ?>
 					<input type="hidden" name="affected" id="affected" value="" />
 					<?php wp_nonce_field( '#' . $this->args[ 'id' ], '_ajax_nonce', false ); ?>
-					<label class="screen-reader-text" for="#<?php echo $this->args[ 'id' ]; ?>-input"><?php _e( 'Search' ); ?></label>
-					<input type="text" id="<?php echo $this->args[ 'id' ]; ?>-input" name="ps" value="" autocomplete="off" />
+					<label class="screen-reader-text" for="#bb-modal-view-input"><?php _e( 'Search' ); ?></label>
+					<input type="text" id="bb-modal-view-input" name="ps" value="" autocomplete="off" />
 					<span class="spinner"></span>
-					<input type="button" id="<?php echo $this->args[ 'id' ]; ?>-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
+					<input type="button" id="bb-modal-view-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
 					<div class="clear"></div>
 				</div>
 				<div id="bb-modal-view-response"></div>
 			</div>
-			<div class="bb-modal-view-buttons">
-				<?php submit_button( __( 'Select' ), 'button-primary alignright', $this->args[ 'id' ] . '-submit', false ); ?>
+			<div class="find-box-buttons bb-modal-view-buttons">
+				<?php submit_button( __( 'Select' ), 'button-primary alignright', 'bb-modal-view-submit', false ); ?>
 				<div class="clear"></div>
 			</div>
 		</div>
@@ -134,38 +150,43 @@ class BB_Modal_View {
 	 *
 	 * @since 3.1.0
 	 */
-	public function wp_ajax_find_tax() {
-		$plugin = DaTask::get_instance();
-		$taxs = get_terms( 'task-team', array(
-			'orderby' => 'count',
-			'hide_empty' => 0,
-			'name__like' => wp_unslash( $_POST[ 'ps' ] )
-				) );
-		$user_taxs = explode( ', ', get_user_meta( wp_unslash( $_POST[ 'user' ] ), $plugin->get_fields( 'category_to_do' ), true ) );
+	public function ajax_posts() {
+		$query = new WP_Query( array( 'post_type' => 'post', 's' => wp_unslash( $_POST[ 'ps' ] ) ) );
 
-		if ( !$taxs ) {
+		if ( !$query->posts ) {
 			wp_send_json_error( __( 'No items found.' ) );
 		}
+		$user_posts = explode( ', ', get_user_meta( get_current_user_id(), 'bb-modal-view', true ) );
 
-		$html = '<table class="widefat"><thead><tr><th class="found-radio"><br /></th><th>' . __( 'Name' ) . '</th></tr></thead><tbody>';
+		$html = '<table class="widefat"><thead><tr><th class="found-checkbox"><br /></th><th>' . __( 'Name' ) . '</th></tr></thead><tbody>';
 		$alt = '';
-		foreach ( $taxs as $tax ) {
+		$checked = '';
+		foreach ( $query->posts as $post ) {
 			$checked = '';
-			foreach ( $user_taxs as $key => $user_tax ) {
-				if ( $user_tax === $tax->slug ) {
+			foreach ( $user_posts as $key => $posts ) {
+				if ( $posts === (string) $post->ID ) {
 					$checked = ' checked="checked"';
-					unset( $user_taxs[ $key ] );
+					unset( $user_posts[ $key ] );
 				}
 			}
 			$alt = ( 'alternate' == $alt ) ? '' : 'alternate';
 
-			$html .= '<tr class="' . trim( 'found-tax-task ' . $alt ) . '"><td class="found-checkbox"><input type="checkbox" id="found-' . $tax->slug . '" name="found_tax_task" value="' . esc_attr( $tax->slug ) . '"' . $checked . '></td>';
-			$html .= '<td><label for="found-' . $tax->slug . '">' . esc_html( $tax->name ) . '</label></td></tr>' . "\n\n";
+			$html .= '<tr class="' . trim( 'bb-modal-view-item ' . $alt ) . '"><td class="found-checkbox"><input type="checkbox" id="found-' . $post->ID . '" name="ajax_posts" value="' . esc_attr( $post->ID ) . '"' . $checked . '></td>';
+			$html .= '<td><label for="found-' . $post->ID . '">' . esc_html( $post->post_title ) . '</label></td></tr>' . "\n\n";
 		}
 
 		$html .= '</tbody></table>';
 
 		wp_send_json_success( $html );
+	}
+
+	/**
+	 * Add taxonomy to the user
+	 */
+	public function ajax_posts_selected() {
+		update_user_meta( get_current_user_id(), 'bb-modal-view', wp_unslash( $_POST[ 'check' ] ) );
+
+		wp_send_json_success();
 	}
 
 }
