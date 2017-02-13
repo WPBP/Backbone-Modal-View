@@ -11,7 +11,7 @@ jQuery(document).ready ($) ->
       send: ->
         search = this
         search.$spinner.show()
-        $( document ).trigger( "BBModalView_before_the_list_request", label );
+        $( document ).trigger( "BBModalView_before_the_list_request" );
         custom_data = $(".modal-#{@modal_id}").data()
         delete custom_data.ajax
         delete custom_data.ajaxOnSelect

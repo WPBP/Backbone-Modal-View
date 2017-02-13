@@ -20,28 +20,32 @@ class BB_Modal_View {
 	 * Construct the class parameter
 	 * 
 	 * @param array $args Parameters of class.
-	 * @return void
 	 */
 	function __construct( $args = array() ) {
 		$defaults = array(
-			'id' => 'test',
-			'hook' => 'admin_notices',
-			'input' => 'checkbox', // or radio
-			'label' => __( 'Open Modal' ),
-			'data' => array( 'rand' => rand() ),
-			'ajax' => array( $this, 'ajax_posts' ),
-			'ajax_on_select' => array( $this, 'ajax_posts_selected' ),
-			'echo_button' => true
+			'id' => 'test', // ID of the modal view
+			'hook' => 'admin_notices', // Where return or print the button
+			'input' => 'checkbox', // Or radio
+			'label' => __( 'Open Modal' ), // Button text
+			'data' => array( 'rand' => rand() ), // Array of custom datas
+			'ajax' => array( $this, 'ajax_posts' ), // Ajax function for the list to show on the modal
+			'ajax_on_select' => array( $this, 'ajax_posts_selected' ), // Ajax function to execute on Select button
+			'echo_button' => true // Do you want echo the button in the hook chosen or only return?
 		);
 		$this->args = wp_parse_args( $args, $defaults );
+
+		// Print the button
 		if ( $this->args[ 'echo_button' ] ) {
 			add_action( $this->args[ 'hook' ], array( $this, 'btn_modal_echo' ) );
 		} else {
 			add_action( $this->args[ 'hook' ], array( $this, 'btn_modal' ) );
 		}
+		// Add the resource
 		add_action( 'admin_head', array( $this, 'append_resource_modal' ) );
+		// Add the skeleton of the modal view
 		add_action( 'admin_footer', array( $this, 'append_modal' ) );
 
+		// Add the ajax hook
 		$ajax = $this->args[ 'ajax' ];
 		if ( is_array( $ajax ) ) {
 			$ajax = $ajax[ 1 ];
@@ -49,6 +53,7 @@ class BB_Modal_View {
 		add_action( 'wp_ajax_' . $ajax, $this->args[ 'ajax' ] );
 		$this->args[ 'ajax' ] = $ajax;
 
+		// Add the Ajax hook on select
 		$ajax_on_select = $this->args[ 'ajax_on_select' ];
 		if ( is_array( $ajax_on_select ) ) {
 			$ajax_on_select = $ajax_on_select[ 1 ];
@@ -58,11 +63,7 @@ class BB_Modal_View {
 	}
 
 	/**
-	 * Assign tax to users
-	 *
-	 * @param string $value The button to show.
-	 * @param string $column_name The id of the column.
-	 * @param string $user_id The user ID.
+	 * Get the button code
 	 */
 	public function btn_modal() {
 		$data = '';
@@ -73,6 +74,9 @@ class BB_Modal_View {
 		return $value;
 	}
 
+	/**
+	 * Print the button
+	 */
 	public function btn_modal_echo() {
 		echo $this->btn_modal();
 	}
@@ -83,13 +87,12 @@ class BB_Modal_View {
 	public function append_resource_modal() {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'wp-backbone' );
-		// TODO use the right path
 		//wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
 		wp_enqueue_script( 'bb-modal-view', 'https://boilerplate.dev/wp-content/plugins/Backbone-Modal-View/assets/js/public.js', array( 'jquery', 'wp-backbone' ) );
 	}
 
 	/**
-	 * 
+	 * Generate the skeleton of the modal view
 	 * Based on find_posts
 	 * 
 	 * @param type $found_action
@@ -145,24 +148,20 @@ class BB_Modal_View {
 	}
 
 	/**
-	 * Ajax handler for querying posts for the Find Users modal.
-	 *
-	 * @see window.findPosts
-	 *
-	 * @since 3.1.0
+	 * Ajax handler for querying posts as example
 	 */
 	public function ajax_posts() {
 		$query = new WP_Query( array( 'post_type' => 'post', 's' => wp_unslash( $_POST[ 'ps' ] ) ) );
-
 		if ( !$query->posts ) {
 			wp_send_json_error( __( 'No items found.' ) );
 		}
+		// Get the item checked
 		$user_posts = explode( ', ', get_user_meta( get_current_user_id(), 'bb-modal-view', true ) );
 
 		$html = '<table class="widefat"><thead><tr><th class="found-checkbox"><br /></th><th>' . __( 'Name' ) . '</th></tr></thead><tbody>';
-		$alt = '';
-		$checked = '';
+		$alt = $checked = '';
 		foreach ( $query->posts as $post ) {
+			// Check if there element checked
 			$checked = '';
 			foreach ( $user_posts as $key => $posts ) {
 				if ( $posts === ( string ) $post->ID ) {
@@ -175,19 +174,20 @@ class BB_Modal_View {
 			$html .= '<tr class="' . trim( 'bb-modal-view-item ' . $alt ) . '"><td class="found-' . $this->args[ 'input' ] . '"><input type="' . $this->args[ 'input' ] . '" id="found-' . $post->ID . '" name="ajax_posts" value="' . esc_attr( $post->ID ) . '"' . $checked . '></td>';
 			$html .= '<td><label for="found-' . $post->ID . '">' . esc_html( $post->post_title ) . '</label></td></tr>' . "\n\n";
 		}
-
 		$html .= '</tbody></table>';
 
+		// To close the request and say that everything is ok
 		wp_send_json_success( $html );
 	}
 
 	/**
-	 * Add taxonomy to the user
+	 * Save the checked elements in a custom field, as example
 	 */
 	public function ajax_posts_selected() {
 		// For custom data look on $_POST[ 'custom_data' ]
 		update_user_meta( get_current_user_id(), 'bb-modal-view', wp_unslash( $_POST[ 'check' ] ) );
 
+		// To close the request and say that everything is ok
 		wp_send_json_success();
 	}
 

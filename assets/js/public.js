@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
       var custom_data, search;
       search = this;
       search.$spinner.show();
-      $(document).trigger("BBModalView_before_the_list_request", label);
+      $(document).trigger("BBModalView_before_the_list_request");
       custom_data = $(".modal-" + this.modal_id).data();
       delete custom_data.ajax;
       delete custom_data.ajaxOnSelect;
