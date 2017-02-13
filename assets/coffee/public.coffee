@@ -11,6 +11,7 @@ jQuery(document).ready ($) ->
       send: ->
         search = this
         search.$spinner.show()
+        $( document ).trigger( "BBModalView_before_the_list_request", label );
         custom_data = $(".modal-#{@modal_id}").data()
         delete custom_data.ajax
         delete custom_data.ajaxOnSelect
@@ -59,6 +60,7 @@ jQuery(document).ready ($) ->
           label.push $(selector + ' #bb-modal-view-response input#found-' + value).attr 'value'
           return
         if !!$(".modal-#{@modal_id}").data('ajax-on-select')
+            $( document ).trigger( "BBModalView_before_the_select_request", label );
             custom_data = $(".modal-#{@modal_id}").data()
             delete custom_data.ajax
             delete custom_data.ajaxOnSelect

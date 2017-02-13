@@ -13,6 +13,7 @@ jQuery(document).ready(function($) {
       var custom_data, search;
       search = this;
       search.$spinner.show();
+      $(document).trigger("BBModalView_before_the_list_request", label);
       custom_data = $(".modal-" + this.modal_id).data();
       delete custom_data.ajax;
       delete custom_data.ajaxOnSelect;
@@ -54,7 +55,7 @@ jQuery(document).ready(function($) {
       return this.send();
     },
     selectPost: function(evt) {
-      var checked, label, search, selector;
+      var checked, custom_data, label, search, selector;
       search = this;
       selector = this.selector;
       evt.preventDefault();
@@ -71,11 +72,16 @@ jQuery(document).ready(function($) {
         label.push($(selector + ' #bb-modal-view-response input#found-' + value).attr('value'));
       });
       if (!!$(".modal-" + this.modal_id).data('ajax-on-select')) {
+        $(document).trigger("BBModalView_before_the_select_request", label);
+        custom_data = $(".modal-" + this.modal_id).data();
+        delete custom_data.ajax;
+        delete custom_data.ajaxOnSelect;
         $.ajax(ajaxurl, {
           type: 'POST',
           dataType: 'json',
           data: {
             check: label.join(', '),
+            custom_data: custom_data,
             action: $(".modal-" + this.modal_id).data('ajax-on-select'),
             _ajax_nonce: $(this.selector + ' #_ajax_nonce').val()
           }
