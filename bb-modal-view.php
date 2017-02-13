@@ -87,8 +87,7 @@ class BB_Modal_View {
 	public function append_resource_modal() {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'wp-backbone' );
-		//wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
-		wp_enqueue_script( 'bb-modal-view', 'https://boilerplate.dev/wp-content/plugins/Backbone-Modal-View/assets/js/public.js', array( 'jquery', 'wp-backbone' ) );
+		wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
 	}
 
 	/**
