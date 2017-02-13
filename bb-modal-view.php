@@ -26,7 +26,7 @@ class BB_Modal_View {
 		$defaults = array(
 			'id' => 'test',
 			'hook' => 'admin_notices',
-			'input' => 'checkbox', //or radio
+			'input' => 'checkbox', // or radio
 			'label' => __( 'Open Modal' ),
 			'data' => array( 'rand' => rand() ),
 			'ajax' => array( $this, 'ajax_posts' ),
@@ -185,6 +185,7 @@ class BB_Modal_View {
 	 * Add taxonomy to the user
 	 */
 	public function ajax_posts_selected() {
+		// For custom data look on $_POST[ 'custom_data' ]
 		update_user_meta( get_current_user_id(), 'bb-modal-view', wp_unslash( $_POST[ 'check' ] ) );
 
 		wp_send_json_success();

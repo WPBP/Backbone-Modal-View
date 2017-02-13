@@ -11,11 +11,15 @@ jQuery(document).ready ($) ->
       send: ->
         search = this
         search.$spinner.show()
+        custom_data = $(".modal-#{@modal_id}").data()
+        delete custom_data.ajax
+        delete custom_data.ajaxOnSelect
         $.ajax(ajaxurl,
           type: 'POST'
           dataType: 'json'
           data:
             ps: search.$input.val()
+            custom_data: custom_data
             action: $(".modal-#{@modal_id}").data('ajax')
             _ajax_nonce: $("#{@selector} #_ajax_nonce").val()).always(->
           search.$spinner.hide()
@@ -54,12 +58,16 @@ jQuery(document).ready ($) ->
         $.each checked, (index, value) ->
           label.push $(selector + ' #bb-modal-view-response input#found-' + value).attr 'value'
           return
-        if !!$(".modal-#{@modal_id}").data('ajax-on-select') 
+        if !!$(".modal-#{@modal_id}").data('ajax-on-select')
+            custom_data = $(".modal-#{@modal_id}").data()
+            delete custom_data.ajax
+            delete custom_data.ajaxOnSelect
             $.ajax(ajaxurl,
             type: 'POST'
             dataType: 'json'
             data:
                 check: label.join(', ')
+                custom_data: custom_data
                 action: $(".modal-#{@modal_id}").data('ajax-on-select')
                 _ajax_nonce: $(@selector + ' #_ajax_nonce').val()).always(->
                     search.$spinner.hide()

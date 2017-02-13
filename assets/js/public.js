@@ -10,14 +10,18 @@ jQuery(document).ready(function($) {
       return this.send();
     },
     send: function() {
-      var search;
+      var custom_data, search;
       search = this;
       search.$spinner.show();
+      custom_data = $(".modal-" + this.modal_id).data();
+      delete custom_data.ajax;
+      delete custom_data.ajaxOnSelect;
       return $.ajax(ajaxurl, {
         type: 'POST',
         dataType: 'json',
         data: {
           ps: search.$input.val(),
+          custom_data: custom_data,
           action: $(".modal-" + this.modal_id).data('ajax'),
           _ajax_nonce: $(this.selector + " #_ajax_nonce").val()
         }
@@ -118,5 +122,3 @@ jQuery(document).ready(function($) {
     return bb_modal.trigger('open');
   });
 });
-
-//# sourceMappingURL=public.js.map
