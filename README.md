@@ -9,7 +9,9 @@ Add on a button a Backbone Modal View with a list
 Do you want a modal with search included withoout develop in Javascript?  
 This code is very simple, is generated a button that you can print or return where you prefer that will open a modal view.  
 You have only to define the output of the list (HTML) and the AJAX call where save the element checked.  
-CHeck the code example and try it to understand how can save so much your precious time!
+Check the code example and try it to understand how can save so much your precious time!
+
+The example code in the class, save the checked element as a string separated by ', ' in an user field.
 
 ## Example
 
