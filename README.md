@@ -4,7 +4,7 @@
 
 Add on a button a Backbone Modal View with a list
 
-#What?
+# What?
 
 Do you want a modal with search included withoout develop in Javascript?  
 This code is very simple, is generated a button that you can print or return where you prefer that will open a modal view.  
