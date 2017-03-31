@@ -88,7 +88,7 @@ if ( !class_exists( 'BB_Modal_View' ) ) {
 		public function append_resource_modal() {
 			wp_enqueue_script( 'jquery' );
 			wp_enqueue_script( 'wp-backbone' );
-			wp_enqueue_script( 'bb-modal-view', plugins_url( '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
+			wp_enqueue_script( 'bb-modal-view', plugins_url( basename( __DIR__ ) . '/assets/js/public.js', dirname( __FILE__ ) ), array( 'jquery', 'wp-backbone' ) );
 		}
 
 		/**
